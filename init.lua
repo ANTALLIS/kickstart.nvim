@@ -86,6 +86,7 @@ P.S. You can delete this when you're done too. It's your config now! :)
 
 -- Set <space> as the leader key
 -- See `:help mapleader`
+-- The leader key is effectively a namespace for custom keymaps.
 --  NOTE: Must happen before plugins are loaded (otherwise wrong leader will be used)
 vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
@@ -98,11 +99,16 @@ vim.g.have_nerd_font = true
 -- NOTE: You can change these options as you wish!
 --  For more options, you can see `:help option-list`
 
+-- Make tab equal 4 spaces
+-- vim.opt_global.tabstop = 4
+
 -- Make line numbers default
--- vim.opt.number = true
+vim.opt.number = true
 -- You can also add relative line numbers, to help with jumping.
 --  Experiment for yourself to see if you like it!
 vim.opt.relativenumber = true
+-- I don't know what this does:
+-- vim.opt.signcolumn = 'number'
 
 -- Enable mouse mode, can be useful for resizing splits for example!
 vim.opt.mouse = 'a'
@@ -155,7 +161,7 @@ vim.opt.inccommand = 'split'
 vim.opt.cursorline = true
 
 -- Minimal number of screen lines to keep above and below the cursor.
-vim.opt.scrolloff = 999
+vim.opt.scrolloff = 20
 
 -- [[ Basic Keymaps ]]
 --  See `:help vim.keymap.set()`
@@ -189,6 +195,7 @@ vim.keymap.set('i', '<down>', '<cmd>echo "Use j to move!!"<CR>')
 
 -- Setting wrapping
 vim.opt.wrap = true
+vim.opt.linebreak = true
 
 -- Save position in file
 vim.api.nvim_create_autocmd({ 'BufReadPost' }, {
@@ -198,6 +205,15 @@ vim.api.nvim_create_autocmd({ 'BufReadPost' }, {
     vim.api.nvim_exec2('silent! normal! g`"zv', { output = false })
   end,
 })
+
+-- Turn on soft-wrap
+-- vim.api.nvim_create_autocmd({ 'BufReadPost' }, {
+--   desc = 'Turn on soft-wrap',
+--   pattern = { '*' },
+--   callback = function()
+--     vim.api.nvim_exec2('silent! normal! [ow', { output = false })
+--   end,
+-- })
 
 -- Keybinds to make split navigation easier.
 --  Use CTRL+<hjkl> to switch between windows
@@ -255,7 +271,55 @@ require('lazy').setup({
   --
   -- Use `opts = {}` to force a plugin to be loaded.
   --
+  -- MY PLUGINS:
+  {
+    'Aasim-A/scrollEOF.nvim',
+    event = { 'CursorMoved', 'WinScrolled' },
+    opts = {
+      -- The pattern used for the internal autocmd to determine
+      -- where to run scrollEOF. See https://neovim.io/doc/user/autocmd.html#autocmd-pattern
+      pattern = '*',
+      -- Whether or not scrollEOF should be enabled in insert mode
+      insert_mode = true,
+      -- Whether or not scrollEOF should be enabled in floating windows
+      floating = true,
+      -- List of filetypes to disable scrollEOF for.
+      disabled_filetypes = {},
+      -- List of modes to disable scrollEOF for. see https://neovim.io/doc/user/builtin.html#mode()
+      disabled_modes = {},
+    },
+  },
+  { 'nvim-java/nvim-java' },
+  {
+    'simrat39/symbols-outline.nvim',
+    opts = {},
+  },
+  {
+    'nvim-treesitter/nvim-treesitter-context',
+    opts = {
+      enable = true, -- Enable this plugin (Can be enabled/disabled later via commands)
+      multiwindow = false, -- Enable multiwindow support.
+      max_lines = 0, -- How many lines the window should span. Values <= 0 mean no limit.
+      min_window_height = 0, -- Minimum editor window height to enable context. Values <= 0 mean no limit.
+      line_numbers = true,
+      multiline_threshold = 20, -- Maximum number of lines to show for a single context
+      trim_scope = 'outer', -- Which context lines to discard if `max_lines` is exceeded. Choices: 'inner', 'outer'
+      mode = 'cursor', -- Line used to calculate context. Choices: 'cursor', 'topline'
+      -- Separator between context and content. Should be a single character string, like '-'.
+      -- When separator is set, the context will only show up when there are at least 2 lines above cursorline.
+      separator = nil,
+      zindex = 20, -- The Z-index of the context window
+      on_attach = nil, -- (fun(buf: integer): boolean) return false to disable attaching
+    },
+  },
 
+  -- {
+  --   'andrewferrier/wrapping.nvim',
+  --   opts = {
+  --     auto_set_mode_heuristically = false,
+  --     pattern = '*',
+  --   },
+  -- },
   -- Here is a more advanced example where we pass configuration
   -- options to `gitsigns.nvim`. This is equivalent to the following Lua:
   --    require('gitsigns').setup({ ... })
@@ -456,6 +520,7 @@ require('lazy').setup({
   },
 
   -- LSP Plugins
+  -- 'https://projects.eclipse.org/projects/eclipse.jdt.ls',
   {
     -- `lazydev` configures Lua LSP for your Neovim config, runtime and plugins
     -- used for completion, annotations and signatures of Neovim apis
@@ -477,6 +542,7 @@ require('lazy').setup({
       { 'williamboman/mason.nvim', config = true }, -- NOTE: Must be loaded before dependants
       'williamboman/mason-lspconfig.nvim',
       'WhoIsSethDaniel/mason-tool-installer.nvim',
+      'nvim-java/nvim-java',
 
       -- Useful status updates for LSP.
       -- NOTE: `opts = {}` is the same as calling `require('fidget').setup({})`
@@ -633,6 +699,7 @@ require('lazy').setup({
       --  - settings (table): Override the default settings passed when initializing the server.
       --        For example, to see the options for `lua_ls`, you could go to: https://luals.github.io/wiki/settings/
       local servers = {
+        jdtls = {},
         clangd = {},
         gopls = {},
         -- pyright = {},
@@ -643,7 +710,7 @@ require('lazy').setup({
         --    https://github.com/pmizio/typescript-tools.nvim
         --
         -- But for many setups, the LSP (`ts_ls`) will work just fine
-        ts_ls = {},
+        -- ts_ls = {},
         --
 
         lua_ls = {
@@ -687,6 +754,14 @@ require('lazy').setup({
             -- certain features of an LSP (for example, turning off formatting for ts_ls)
             server.capabilities = vim.tbl_deep_extend('force', {}, capabilities, server.capabilities or {})
             require('lspconfig')[server_name].setup(server)
+          end,
+          jdtls = function()
+            require('java').setup {
+              -- Your custom jdtls settings go here.
+            }
+            require('lspconfig').jdtls.setup {
+              -- Your custom nvim-java config goes here.
+            }
           end,
         },
       }
@@ -852,23 +927,33 @@ require('lazy').setup({
     end,
   },
 
-  { -- You can easily change to a different colorscheme.
-    -- Change the name of the colorscheme plugin below, and then
-    -- change the command in the config to whatever the name of that colorscheme is.
-    --
-    -- If you want to see what colorschemes are already installed, you can use `:Telescope colorscheme`.
-    'folke/tokyonight.nvim',
-    priority = 1000, -- Make sure to load this before all the other start plugins.
+  {
+    'eldritch-theme/eldritch.nvim',
+    lazy = false,
+    priority = 1000,
+    opts = {},
     init = function()
-      -- Load the colorscheme here.
-      -- Like many other themes, this one has different styles, and you could load
-      -- any other, such as 'tokyonight-storm', 'tokyonight-moon', or 'tokyonight-day'.
-      vim.cmd.colorscheme 'tokyonight-night'
-
-      -- You can configure highlights by doing something like:
+      vim.cmd.colorscheme 'eldritch'
       vim.cmd.hi 'Comment gui=none'
     end,
   },
+  -- { -- You can easily change to a different colorscheme.
+  --   -- Change the name of the colorscheme plugin below, and then
+  --   -- change the command in the config to whatever the name of that colorscheme is.
+  --   --
+  --   -- If you want to see what colorschemes are already installed, you can use `:Telescope colorscheme`.
+  --   'folke/tokyonight.nvim',
+  --   priority = 1000, -- Make sure to load this before all the other start plugins.
+  --   init = function()
+  --     -- Load the colorscheme here.
+  --     -- Like many other themes, this one has different styles, and you could load
+  --     -- any other, such as 'tokyonight-storm', 'tokyonight-moon', or 'tokyonight-day'.
+  --     vim.cmd.colorscheme 'tokyonight-night'
+  --
+  --     -- You can configure highlights by doing something like:
+  --     vim.cmd.hi 'Comment gui=none'
+  --   end,
+  -- },
 
   -- Highlight todo, notes, etc in comments
   -- { 'folke/todo-comments.nvim', event = 'VimEnter', dependencies = { 'nvim-lua/plenary.nvim' }, opts = { signs = false } },
@@ -917,7 +1002,7 @@ require('lazy').setup({
     main = 'nvim-treesitter.configs', -- Sets main module to use for opts
     -- [[ Configure Treesitter ]] See `:help nvim-treesitter`
     opts = {
-      ensure_installed = { 'bash', 'c', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'query', 'vim', 'vimdoc', 'rust', 'go' },
+      ensure_installed = { 'bash', 'c', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'query', 'vim', 'vimdoc', 'rust', 'go', 'java' },
       -- Autoinstall languages that are not installed
       auto_install = true,
       highlight = {
