@@ -193,6 +193,28 @@ vim.keymap.set('i', '<right>', '<cmd>echo "Use l to move!!"<CR>')
 vim.keymap.set('i', '<up>', '<cmd>echo "Use k to move!!"<CR>')
 vim.keymap.set('i', '<down>', '<cmd>echo "Use j to move!!"<CR>')
 
+-- local ht = require 'haskell-tools'
+local bufnr = vim.api.nvim_get_current_buf()
+local opts_0 = { noremap = true, silent = true, buffer = bufnr, desc = 'Run a [C]ode [L]ense' }
+local opts_1 = { noremap = true, silent = true, buffer = bufnr, desc = 'Toggle a GHCi [R]epl for the current bu[f]fer' }
+-- haskell-language-server relies heavily on codeLenses,
+-- so auto-refresh (see advanced configuration) is enabled by default
+vim.keymap.set('n', '<space>cl', vim.lsp.codelens.run, opts_0)
+-- Hoogle search for the type signature of the definition under the cursor
+-- vim.keymap.set('n', '<space>hs', ht.hoogle.hoogle_signature, opts)
+-- Evaluate all code snippets
+-- vim.keymap.set('n', '<space>ea', ht.lsp.buf_eval_all, opts)
+-- Toggle a GHCi repl for the current package
+-- vim.keymap.set('n', '<leader>rr', ht.repl.toggle, opts)
+-- Toggle a GHCi repl for the current buffer
+vim.keymap.set('n', '<leader>rf', function()
+  ht.repl.toggle(vim.api.nvim_buf_get_name(0))
+end, opts_1)
+-- vim.keymap.set('n', '<leader>rq', ht.repl.quit, opts)
+
+-- OMG I needed this
+vim.o.autochdir = true
+
 -- Setting wrapping
 vim.opt.wrap = true
 vim.opt.linebreak = true
@@ -532,6 +554,11 @@ require('lazy').setup({
         { path = 'luvit-meta/library', words = { 'vim%.uv' } },
       },
     },
+  },
+  {
+    'mrcjkb/haskell-tools.nvim',
+    version = '^4', -- Recommended
+    lazy = false, -- This plugin is already lazy
   },
   { 'Bilal2453/luvit-meta', lazy = true },
   {
@@ -1002,7 +1029,23 @@ require('lazy').setup({
     main = 'nvim-treesitter.configs', -- Sets main module to use for opts
     -- [[ Configure Treesitter ]] See `:help nvim-treesitter`
     opts = {
-      ensure_installed = { 'bash', 'c', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'query', 'vim', 'vimdoc', 'rust', 'go', 'java' },
+      ensure_installed = {
+        'bash',
+        'c',
+        'diff',
+        'html',
+        'lua',
+        'luadoc',
+        'markdown',
+        'markdown_inline',
+        'query',
+        'vim',
+        'vimdoc',
+        'rust',
+        'go',
+        'java',
+        'haskell',
+      },
       -- Autoinstall languages that are not installed
       auto_install = true,
       highlight = {
@@ -1033,7 +1076,8 @@ require('lazy').setup({
   --
   require 'kickstart.plugins.debug',
   require 'kickstart.plugins.indent_line',
-  require 'kickstart.plugins.lint',
+  -- This is conflicting with Markdown files for some reason :/
+  -- require 'kickstart.plugins.lint',
   require 'kickstart.plugins.autopairs',
   require 'kickstart.plugins.neo-tree',
   require 'kickstart.plugins.gitsigns', -- adds gitsigns recommend keymaps
