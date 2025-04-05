@@ -102,6 +102,9 @@ vim.g.have_nerd_font = true
 -- Make tab equal 4 spaces
 -- vim.opt_global.tabstop = 4
 
+-- Make cursor blink
+vim.o.guicursor = vim.o.guicursor .. ',a:-blinkwait175-blinkoff175-blinkon175'
+
 -- Make line numbers default
 vim.opt.number = true
 -- You can also add relative line numbers, to help with jumping.
