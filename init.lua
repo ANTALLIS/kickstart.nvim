@@ -99,8 +99,9 @@ vim.g.have_nerd_font = true
 -- NOTE: You can change these options as you wish!
 --  For more options, you can see `:help option-list`
 
--- Make tab equal 4 spaces
--- vim.opt_global.tabstop = 4
+-- Make tab equal 2 spaces
+vim.opt.tabstop = 2
+vim.opt.shiftwidth = 2
 
 -- Make cursor blink
 vim.o.guicursor = vim.o.guicursor .. ',a:-blinkwait175-blinkoff175-blinkon175'
@@ -214,9 +215,9 @@ vim.keymap.set('n', '<space>cl', vim.lsp.codelens.run, opts_0)
 -- Toggle a GHCi repl for the current package
 -- vim.keymap.set('n', '<leader>rr', ht.repl.toggle, opts)
 -- Toggle a GHCi repl for the current buffer
-vim.keymap.set('n', '<leader>rf', function()
-  ht.repl.toggle(vim.api.nvim_buf_get_name(0))
-end, opts_1)
+-- vim.keymap.set('n', '<leader>rf', function()
+--   ht.repl.toggle(vim.api.nvim_buf_get_name(0))
+-- end, opts_1)
 -- vim.keymap.set('n', '<leader>rq', ht.repl.quit, opts)
 
 -- OMG I needed this
